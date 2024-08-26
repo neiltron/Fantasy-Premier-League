@@ -1,0 +1,4 @@
+pytz>=2020.1
+requests
+tabulate
+duckdb
