@@ -28,7 +28,12 @@ def main():
     else:
         start_gw = 1
 
-    output_folder = "team_" + sys.argv[1] + "_data" + season
+    output_container_folder = "teams/"
+
+    if not os.path.exists(output_container_folder):
+        os.makedirs(output_container_folder)
+
+    output_folder = output_container_folder + sys.argv[1] + "/" + season
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     store_data(team_id, output_folder, start_gw)
