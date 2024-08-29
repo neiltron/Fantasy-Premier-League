@@ -6,7 +6,7 @@ import sys
 BASE_URL = "https://fantasy.premierleague.com/api/"
 LEAGUE_ID = 820322
 SEASON = "24_25"  # Update this for the correct season
-GAMEWEEK = 2  # Update this for the desired gameweek
+GAMEWEEK = 1  # Update this for the desired gameweek
 
 def get_league_teams(league_id):
     print(f"Fetching teams for league ID: {league_id}...")
@@ -31,7 +31,11 @@ def main():
     for team_id, team_name in league_teams:
         print(f"\nProcessing team: {team_name} (ID: {team_id})")
         try:
-            command = f"python teams_scraper.py {team_id} {SEASON} {GAMEWEEK}"
+            gameweek = GAMEWEEK
+            if team_id == 8943970:
+                gameweek = 2
+
+            command = f"python teams_scraper.py {team_id} {SEASON} {gameweek}"
             print(f"Executing command: {command}")
             result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
             print(result.stdout)
