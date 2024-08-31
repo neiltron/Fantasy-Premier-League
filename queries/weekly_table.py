@@ -7,7 +7,7 @@ from tabulate import tabulate
 BASE_URL = "https://fantasy.premierleague.com/api/"
 LEAGUE_ID = 820322  # Replace with your league ID
 SEASON = "24_25"  # Update this for the current season
-CURRENT_GW = 2  # Update this to the current gameweek
+CURRENT_GW = 3  # Update this to the current gameweek
 
 def get_league_standings(league_id):
     print(f"Fetching standings for league ID: {league_id}...")
@@ -23,13 +23,13 @@ def get_gw_data(team_id, gameweek):
     if not os.path.exists(csv_path):
         print(f"CSV file not found for team {team_id}")
         return None
-    
+
     with open(csv_path, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if int(row['event']) == gameweek:
                 return row
-    
+
     print(f"Data for gameweek {gameweek} not found for team {team_id}")
     return None
 
@@ -48,15 +48,15 @@ def main():
         entry_id = team['entry']
         team_name = team['entry_name']
         player_name = team['player_name']
-        
+
         gw_data = get_gw_data(entry_id, CURRENT_GW)
-        
+
         if gw_data:
             weekly_points = int(gw_data['points'])
             total_points = int(gw_data['total_points'])
             overall_rank = int(gw_data['overall_rank'])
             transfers = int(gw_data['event_transfers'])
-            
+
             table_data.append([
                 team_name,
                 player_name,
