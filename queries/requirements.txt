@@ -4,3 +4,4 @@ tabulate
 duckdb
 fuzzywuzzy
 colorama
+python-dotenv
