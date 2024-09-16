@@ -115,6 +115,7 @@ def update_rosters(league_data):
                 SELECT
                     element as player,
                     position,
+                    multiplier,
                     is_captain,
                     is_vice_captain
                 FROM read_csv_auto('teams/{team_id}/{TEAM_SEASON}/picks_{CURRENT_GAMEWEEK}.csv')
@@ -128,7 +129,7 @@ def update_rosters(league_data):
             fpl_team_record_id = fpl_team_response.json()['items'][0]['id']
 
             for roster in roster_data:
-                player_id, position, is_captain, is_vice_captain = roster
+                player_id, position, multiplier, is_captain, is_vice_captain = roster
 
                 # Fetch the Pocketbase record ID for this player
                 player_response = requests.get(f"{POCKETBASE_URL}/api/collections/players/records?filter=(player_id='{player_id}')")
@@ -141,8 +142,10 @@ def update_rosters(league_data):
                     "fpl_team": fpl_team_record_id,
                     "player": player_record_id,
                     "gameweek": CURRENT_GAMEWEEK,
-                    "is_captain": bool(is_captain),  # Ensure boolean value
-                    "is_vice_captain": bool(is_vice_captain)  # Ensure boolean value
+                    "position": position,
+                    "multiplier": multiplier,
+                    "is_captain": int(is_captain),  # Ensure boolean value
+                    "is_vice_captain": int(is_vice_captain)  # Ensure boolean value
                 }
                 get_or_create_record("rosters", roster_record, "fpl_team,player,gameweek")
         except Exception as e:
