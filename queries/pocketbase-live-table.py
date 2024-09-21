@@ -7,7 +7,7 @@ from collections import defaultdict
 FPL_API_URL = "https://fantasy.premierleague.com/api"
 POCKETBASE_URL = "https://pb.growcup.lol"
 LEAGUE_ID = 820322
-CURRENT_GAMEWEEK = 4
+CURRENT_GAMEWEEK = 5
 DATA_SEASON = "2024-25"
 TEAM_SEASON = "24_25"
 

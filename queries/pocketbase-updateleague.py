@@ -5,7 +5,7 @@ import json
 POCKETBASE_URL = "https://pb.growcup.lol/"
 FPL_API_URL = "https://fantasy.premierleague.com/api"
 LEAGUE_ID = 820322
-CURRENT_GAMEWEEK = 4
+CURRENT_GAMEWEEK = 5
 PREVIOUS_GAMEWEEK = CURRENT_GAMEWEEK - 1
 DATA_SEASON = "2024-25"
 TEAM_SEASON = "24_25"
@@ -32,29 +32,85 @@ def load_data():
 def get_or_create_record(collection, data, unique_field):
     url = f"{POCKETBASE_URL}/api/collections/{collection}/records"
 
-    # Handle composite keys
-    if ',' in unique_field:
-        filter_conditions = []
-        for field in unique_field.split(','):
+    print(data)
+
+    # Try to create the record
+    create_response = requests.post(url, json=data)
+
+    print(create_response.status_code)
+    if create_response.status_code == 200 or create_response.status_code == 201:
+        print(f"Successfully created new record in {collection}")
+        return create_response.json()
+
+    # If creation failed, try to update
+    filter_conditions = []
+    for field in unique_field.split(','):
+        if isinstance(data[field], str):
             filter_conditions.append(f"({field}='{data[field]}')")
-        filter_string = " && ".join(filter_conditions)
-    else:
-        filter_string = f"({unique_field}='{data[unique_field]}')"
+        else:
+            filter_conditions.append(f"({field}={data[field]})")
 
-    response = requests.get(f"{url}?filter={filter_string}")
+    filter_string = " && ".join(filter_conditions)
 
-    if response.status_code == 200 and response.json()['items']:
-        record_id = response.json()['items'][0]['id']
+    get_response = requests.get(f"{url}?filter={filter_string}")
+
+    print(filter_string)
+
+    if get_response.status_code == 200 and get_response.json()['items']:
+        record_id = get_response.json()['items'][0]['id']
         update_url = f"{url}/{record_id}"
-        response = requests.patch(update_url, json=data)
-    else:
-        response = requests.post(url, json=data)
+        update_response = requests.patch(update_url, json=data)
 
-    if response.status_code not in [200, 201]:
-        print(f"Error updating {collection}: {response.text}")
+        if update_response.status_code == 200:
+            print(f"Successfully updated record in {collection}")
+            return update_response.json()
+        else:
+            print(f"Error updating {collection}: {update_response.text}")
+            return None
     else:
-        print(f"Successfully updated {collection}")
-    return response.json()
+        print(f"Error finding existing record in {collection}: {get_response.text}")
+        return None
+
+def get_or_create_player_stats(data):
+    collection = 'player_stats'
+    url = f"{POCKETBASE_URL}/api/collections/{collection}/records"
+
+    print(data)
+
+    # Try to create the record
+    create_response = requests.post(url, json=data)
+
+    print(create_response.status_code)
+    if create_response.status_code == 200 or create_response.status_code == 201:
+        print(f"Successfully created new record in {collection}")
+        return create_response.json()
+
+    # If creation failed, try to update
+    filter_conditions = []
+
+    filter_conditions.append(f"(player.id='{data['player']}')")
+    filter_conditions.append(f"(gameweek={data['gameweek']})")
+
+    filter_string = " && ".join(filter_conditions)
+
+    get_response = requests.get(f"{url}?filter={filter_string}")
+
+    print(filter_string)
+
+    if get_response.status_code == 200 and get_response.json()['items']:
+        record_id = get_response.json()['items'][0]['id']
+        update_url = f"{url}/{record_id}"
+        update_response = requests.patch(update_url, json=data)
+
+        if update_response.status_code == 200:
+            print(f"Successfully updated record in {collection}")
+            return update_response.json()
+        else:
+            print(f"Error updating {collection}: {update_response.text}")
+            return None
+    else:
+        print(f"Error finding existing record in {collection}: {get_response.text}")
+        return None
 
 
 def get_league_data():
@@ -188,9 +244,10 @@ def update_player_stats():
         }
 
         # Use player_id and gameweek as unique identifier
-        response = get_or_create_record("player_stats", stat_record, f"player,gameweek")
-        if 'id' not in response:
-            print(f"Failed to update stats for player {player_id} in gameweek {PREVIOUS_GAMEWEEK}")
+        try:
+            response = get_or_create_player_stats(stat_record)
+        except Exception as e:
+            print(f"Error updating stats for player {player_id}: {str(e)}")
 
 
 def main():
@@ -202,9 +259,9 @@ def main():
         return
 
     league_record = update_league(league_data)
-    update_fpl_teams(league_data, league_record)
-    update_players()
-    update_rosters(league_data)
+    # update_fpl_teams(league_data, league_record)
+    # update_players()
+    # update_rosters(league_data)
     update_player_stats()
 
     print("Pocketbase update completed.")
