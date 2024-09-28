@@ -261,8 +261,8 @@ def main():
     league_record = update_league(league_data)
     # update_fpl_teams(league_data, league_record)
     # update_players()
-    # update_rosters(league_data)
-    update_player_stats()
+    update_rosters(league_data)
+    # update_player_stats()
 
     print("Pocketbase update completed.")
 
