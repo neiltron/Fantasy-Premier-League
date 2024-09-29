@@ -5,7 +5,7 @@ import json
 POCKETBASE_URL = "https://pb.growcup.lol/"
 FPL_API_URL = "https://fantasy.premierleague.com/api"
 LEAGUE_ID = 820322
-CURRENT_GAMEWEEK = 5
+CURRENT_GAMEWEEK = 6
 PREVIOUS_GAMEWEEK = CURRENT_GAMEWEEK - 1
 DATA_SEASON = "2024-25"
 TEAM_SEASON = "24_25"

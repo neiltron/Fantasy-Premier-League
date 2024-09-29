@@ -8,7 +8,7 @@ from collections import defaultdict
 FPL_API_URL = "https://fantasy.premierleague.com/api"
 POCKETBASE_URL = "https://pb.growcup.lol"
 LEAGUE_ID = 820322
-CURRENT_GAMEWEEK = 5
+CURRENT_GAMEWEEK = 6
 DATA_SEASON = "2024-25"
 TEAM_SEASON = "24_25"
 
@@ -369,9 +369,9 @@ def main():
         players_mapping = fetch_players()
 
 
-        # for player_id, stats in live_data.items():
-        #     if int(player_id) in players_mapping:
-        #         update_player_stats(players_mapping[int(player_id)], CURRENT_GAMEWEEK, stats)
+        for player_id, stats in live_data.items():
+            if int(player_id) in players_mapping:
+                update_player_stats(players_mapping[int(player_id)], CURRENT_GAMEWEEK, stats)
 
 
         fixtures = get_fixtures_for_gameweek(CURRENT_GAMEWEEK)
