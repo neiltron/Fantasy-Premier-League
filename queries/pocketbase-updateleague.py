@@ -5,7 +5,7 @@ import json
 POCKETBASE_URL = "https://pb.growcup.lol/"
 FPL_API_URL = "https://fantasy.premierleague.com/api"
 LEAGUE_ID = 820322
-CURRENT_GAMEWEEK = 6
+CURRENT_GAMEWEEK = 9
 PREVIOUS_GAMEWEEK = CURRENT_GAMEWEEK - 1
 DATA_SEASON = "2024-25"
 TEAM_SEASON = "24_25"
@@ -30,7 +30,7 @@ def load_data():
     """)
 
 def get_or_create_record(collection, data, unique_field):
-    url = f"{POCKETBASE_URL}/api/collections/{collection}/records"
+    url = f"{POCKETBASE_URL}api/collections/{collection}/records"
 
     print(data)
 
@@ -48,7 +48,7 @@ def get_or_create_record(collection, data, unique_field):
         if isinstance(data[field], str):
             filter_conditions.append(f"({field}='{data[field]}')")
         else:
-            filter_conditions.append(f"({field}={data[field]})")
+            filter_conditions.append(f"{field}={data[field]}")
 
     filter_string = " && ".join(filter_conditions)
 
@@ -73,7 +73,7 @@ def get_or_create_record(collection, data, unique_field):
 
 def get_or_create_player_stats(data):
     collection = 'player_stats'
-    url = f"{POCKETBASE_URL}/api/collections/{collection}/records"
+    url = f"{POCKETBASE_URL}api/collections/{collection}/records"
 
     print(data)
 
@@ -88,14 +88,12 @@ def get_or_create_player_stats(data):
     # If creation failed, try to update
     filter_conditions = []
 
-    filter_conditions.append(f"(player.id='{data['player']}')")
-    filter_conditions.append(f"(gameweek={data['gameweek']})")
+    filter_conditions.append(f"player.id='{data['player']}'")
+    filter_conditions.append(f"gameweek={data['gameweek']}")
 
     filter_string = " && ".join(filter_conditions)
 
     get_response = requests.get(f"{url}?filter={filter_string}")
-
-    print(filter_string)
 
     if get_response.status_code == 200 and get_response.json()['items']:
         record_id = get_response.json()['items'][0]['id']
@@ -178,7 +176,7 @@ def update_rosters(league_data):
             """).fetchall()
 
             # Fetch the Pocketbase record ID for this FPL team
-            fpl_team_response = requests.get(f"{POCKETBASE_URL}/api/collections/fpl_teams/records?filter=(team_id='{team_id}')")
+            fpl_team_response = requests.get(f"{POCKETBASE_URL}api/collections/fpl_teams/records?filter=team_id={team_id}")
             if fpl_team_response.status_code != 200 or not fpl_team_response.json()['items']:
                 print(f"FPL team with ID {team_id} not found in Pocketbase. Skipping roster update.")
                 continue
@@ -188,7 +186,7 @@ def update_rosters(league_data):
                 player_id, position, multiplier, is_captain, is_vice_captain = roster
 
                 # Fetch the Pocketbase record ID for this player
-                player_response = requests.get(f"{POCKETBASE_URL}/api/collections/players/records?filter=(player_id='{player_id}')")
+                player_response = requests.get(f"{POCKETBASE_URL}api/collections/players/records?filter=player_id={player_id}")
                 if player_response.status_code != 200 or not player_response.json()['items']:
                     print(f"Player with ID {player_id} not found in Pocketbase. Skipping this player in roster update.")
                     continue
@@ -225,7 +223,7 @@ def update_player_stats():
         player_id, points, bps, goals, assists, clean_sheets, minutes = stat
 
         # Check if player exists in the players collection
-        player_check = requests.get(f"{POCKETBASE_URL}/api/collections/players/records?filter=(player_id='{player_id}')")
+        player_check = requests.get(f"{POCKETBASE_URL}api/collections/players/records?filter=player_id={player_id}")
         if player_check.status_code != 200 or not player_check.json()['items']:
             print(f"Player with ID {player_id} not found in players collection. Skipping stats update.")
             continue
@@ -262,7 +260,7 @@ def main():
     # update_fpl_teams(league_data, league_record)
     # update_players()
     update_rosters(league_data)
-    # update_player_stats()
+    update_player_stats()
 
     print("Pocketbase update completed.")
 
