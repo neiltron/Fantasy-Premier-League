@@ -71,12 +71,12 @@ def get_live_data(gameweek):
 
 def get_team_players(team_id, team_name, gameweek):
     players = con.execute(f"""
-        SELECT p.element, pl.full_name, t.short_name AS team_name
+        SELECT p.element, pl.full_name, t.short_name AS team_name, p.is_captain
         FROM read_csv_auto('teams/{team_id}/{TEAM_SEASON}/picks_{gameweek}.csv') p
         JOIN players pl ON p.element = pl.id
         JOIN teams t ON pl.team = t.id
     """).fetchall()
-    return [(player[0], player[1], player[2], team_name) for player in players]
+    return [(player[0], player[1], player[2], team_name, player[3]) for player in players]
 
 def create_match_tables(league_players, fixtures, live_data, gameweek):
     match_tables = {}
@@ -95,7 +95,7 @@ def create_match_tables(league_players, fixtures, live_data, gameweek):
         }
 
     for player in league_players:
-        player_id, player_name, team_name, fpl_team_name = player
+        player_id, player_name, team_name, fpl_team_name, is_captain = player
         player_fixtures = con.execute(f"""
             SELECT id
             FROM fixtures
@@ -115,7 +115,8 @@ def create_match_tables(league_players, fixtures, live_data, gameweek):
                     'minutes': player_live_data.get('minutes', 0),
                     'fpl_teams': set()
                 }
-            match_tables[fixture_id]['players'][player_id]['fpl_teams'].add(fpl_team_name[:5])
+            fpl_team_entry = fpl_team_name[:5] + ('*' if is_captain else '')
+            match_tables[fixture_id]['players'][player_id]['fpl_teams'].add(fpl_team_entry)
 
     # Convert players dict back to list for each fixture and join FPL team names
     for fixture in match_tables.values():
