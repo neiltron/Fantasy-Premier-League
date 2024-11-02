@@ -7,7 +7,7 @@ BASE_URL = "https://fantasy.premierleague.com/api/"
 LEAGUE_ID = 820322
 TEAM_SEASON = "24_25"  # Format used in team directories
 DATA_SEASON = "2024-25"  # Format used in data directory
-GAMEWEEK = 2  # Update this for the desired gameweek
+GAMEWEEK = 9  # Update this for the desired gameweek
 
 # Initialize DuckDB connection
 con = duckdb.connect(':memory:')
@@ -27,10 +27,10 @@ def load_csv_files():
     print("Loading CSV files...")
     # Load team data
     con.execute(f"CREATE TABLE teams AS SELECT * FROM read_csv_auto('data/{DATA_SEASON}/teams.csv')")
-    
+
     # Load player data
     con.execute(f"CREATE TABLE players AS SELECT * FROM read_csv_auto('data/{DATA_SEASON}/players_raw.csv')")
-    
+
     # Load fixtures data
     con.execute(f"CREATE TABLE fixtures AS SELECT * FROM read_csv_auto('data/{DATA_SEASON}/fixtures.csv')")
 
@@ -81,20 +81,20 @@ def main():
         try:
             roster = get_team_roster(team_id)
             player_name = get_player_name(team_id)
-            
+
             print(f"\nRoster for Team ID: {team_name} (ID: {team_id}")
             print(f"Manager: {player_name}")
-            
+
             table_data = []
             for player in roster:
                 element, position, multiplier, is_captain, is_vice_captain, first_name, second_name, element_type, now_cost, total_points, team_name = player
-                
+
                 # Find fixture difficulty for the player's team
                 difficulty = next((f[2] if f[0] == team_name else f[3] for f in fixtures if f[0] == team_name or f[1] == team_name), "N/A")
-                
+
                 role = "Captain" if is_captain else "Vice Captain" if is_vice_captain else ""
                 position_name = ["GK", "DEF", "MID", "FWD"][element_type - 1]
-                
+
                 table_data.append([
                     position,
                     f"{first_name} {second_name}",
@@ -106,7 +106,7 @@ def main():
                     multiplier,
                     role
                 ])
-            
+
             print(tabulate(table_data, headers=[
                 "Pick", "Name", "Position", "Team", "Difficulty", "Cost", "Total Points", "Multiplier", "Role"
             ], tablefmt="grid"))

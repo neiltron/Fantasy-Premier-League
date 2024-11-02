@@ -71,6 +71,53 @@ def get_or_create_record(collection, data, unique_field):
         print(f"Error finding existing record in {collection}: {get_response.text}")
         return None
 
+def get_or_create_roster_record(collection, data, unique_field):
+    url = f"{POCKETBASE_URL}api/collections/{collection}/records"
+
+    print(data)
+
+    # Try to create the record
+    create_response = requests.post(url, json=data)
+
+    print(create_response.status_code)
+    if create_response.status_code == 200 or create_response.status_code == 201:
+        print(f"Successfully created new record in {collection}")
+        return create_response.json()
+
+    # If creation failed, try to update
+    filter_conditions = []
+    for field in unique_field.split(','):
+        print(field)
+        if field == 'fpl_team':
+            filter_conditions.append(f"(fpl_team.id='{data[field]}')")
+        elif field == 'player':
+            filter_conditions.append(f"(player.id='{data[field]}')")
+        elif isinstance(data[field], str):
+            filter_conditions.append(f"({field}='{data[field]}')")
+        else:
+            filter_conditions.append(f"{field}={data[field]}")
+
+    filter_string = " && ".join(filter_conditions)
+
+    get_response = requests.get(f"{url}?filter={filter_string}")
+
+    print(filter_string)
+
+    if get_response.status_code == 200 and get_response.json()['items']:
+        record_id = get_response.json()['items'][0]['id']
+        update_url = f"{url}/{record_id}"
+        update_response = requests.patch(update_url, json=data)
+
+        if update_response.status_code == 200:
+            print(f"Successfully updated record in {collection}")
+            return update_response.json()
+        else:
+            print(f"Error updating {collection}: {update_response.text}")
+            return None
+    else:
+        print(f"Error finding existing record in {collection}: {get_response.text}")
+        return None
+
 def get_or_create_player_stats(data):
     collection = 'player_stats'
     url = f"{POCKETBASE_URL}api/collections/{collection}/records"
@@ -201,7 +248,7 @@ def update_rosters(league_data):
                     "is_captain": int(is_captain),  # Ensure boolean value
                     "is_vice_captain": int(is_vice_captain)  # Ensure boolean value
                 }
-                get_or_create_record("rosters", roster_record, "fpl_team,player,gameweek")
+                get_or_create_roster_record("rosters", roster_record, "fpl_team,player,gameweek")
         except Exception as e:
             print(f"Error processing roster for team {team_id}: {str(e)}")
 
