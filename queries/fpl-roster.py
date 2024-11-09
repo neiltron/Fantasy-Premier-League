@@ -6,7 +6,7 @@ from tabulate import tabulate
 # Constants
 BASE_URL = "https://fantasy.premierleague.com/api/"
 LEAGUE_ID = 820322
-GAMEWEEK = 2
+GAMEWEEK = 10
 
 def get_league_teams(league_id):
     print(f"Fetching teams for league ID: {league_id}...")
@@ -92,7 +92,7 @@ def main():
     for match in timeline:
         print(f"\nMatch time: {match['time'].strftime('%Y-%m-%d %H:%M')} UTC")
         print(f"{match['home_team']} (Difficulty: {match['home_difficulty']}) vs {match['away_team']} (Difficulty: {match['away_difficulty']})")
-        
+
         # Prepare data for the table
         table_data = []
         for affected_team in match['affected_fpl_teams']:
@@ -104,10 +104,10 @@ def main():
                 'MID' if affected_team['player_position'] == 3 else
                 'FWD'
             ])
-        
+
         # Sort the table data by team name and then by player position
         table_data.sort(key=lambda x: (x[0], ['GK', 'DEF', 'MID', 'FWD'].index(x[2])))
-        
+
         # Print the table
         print(tabulate(table_data, headers=['FPL Team', 'Player', 'Position'], tablefmt='grid'))
 
