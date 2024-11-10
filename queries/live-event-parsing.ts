@@ -46,8 +46,6 @@ interface FixtureInfo {
   id: number;
   team_h: number;
   team_a: number;
-  team_h_score: number | null;
-  team_a_score: number | null;
 }
 
 class FPLEventMonitor {
@@ -98,7 +96,7 @@ class FPLEventMonitor {
 
     // Load fixtures
     const fixtures = await this.db.all(`
-      SELECT id, team_h, team_a, team_h_score, team_a_score
+      SELECT id, team_h, team_a
       FROM fixtures
     `);
 
@@ -113,7 +111,13 @@ class FPLEventMonitor {
     }
 
     for (const fixture of fixtures) {
-      this.fixtures.set(fixture.id, fixture);
+      const _fixture: FixtureInfo = {
+        id: parseInt(fixture.id),
+        team_h: parseInt(fixture.team_h),
+        team_a: parseInt(fixture.team_a),
+      };
+
+      this.fixtures.set(parseInt(fixture.id), _fixture);
     }
   }
 
@@ -128,12 +132,7 @@ class FPLEventMonitor {
       [...this.playerInfo.values()].find((p) => p.team_id === fixture.team_a)
         ?.team_short_name || "Unknown";
 
-    const score =
-      fixture.team_h_score !== null && fixture.team_a_score !== null
-        ? `${fixture.team_h_score}-${fixture.team_a_score}`
-        : "";
-
-    return `${homeTeam} vs ${awayTeam} ${score}`;
+    return `${homeTeam} vs ${awayTeam}`;
   }
 
   private getRelevantEvents(
